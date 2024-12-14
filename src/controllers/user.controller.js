@@ -35,22 +35,26 @@ const registerUser = asyncHandler(async (req, res) => {
    
 
 
-   const {username, fullName, email}= req.body
+const {username, fullName, email, password}= req.body
 console.log("email", email,username,fullName );
 if (
     [fullName, email, username, password].some((field) => field?.trim() ==="")
 
-) {
+   ) 
+{
     throw new ApiError(400, "all fields are required")
 }
  
 const existedUser = await User.findOne({
     $or: [{ username }, { email }]
+    
 })
 if (existedUser) {
     throw new ApiError(409,"User with email or username is already exist")
 }
  
+ 
+
 const avatarLocalPath =  req.files?.avatar[0]?.path;
 // const coverImageLocalPath =  req.files?.coverImage[0]?.path
 
@@ -59,7 +63,7 @@ if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.len
     coverImageLocalPath = req.files.coverImage[0].path
     
 }
-
+ 
 if (!avatarLocalPath) {
     throw new ApiError(400, "avatar file is required")
 }
@@ -81,9 +85,8 @@ if (!avatar) {
     username: username.toLowerCase()
 })
 
- const createdUser = await User.findById(user._id).select(
-    "-password -refreshToken"
- )
+ const createdUser = await User.findById(user._id).select("-password -refreshToken")
+
  if (!createdUser) {
     throw new ApiError(500, "something went wrong while user the registration")
     
@@ -93,14 +96,7 @@ return res.status(201).json(
     new ApiResponse(200, createdUser, "user registered successfully")
 )
 
-
-
-
-
-
-
-
-
+ 
 
 })
 
@@ -134,8 +130,7 @@ if(!isPasswordValid){
     throw new ApiError(401, "invalid user crediantial ")
 }
 
-const {accessToken, refreshToken} = await
- generateAccessAndRefreshToken(user._id)
+const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id)
 
 const loggedInUser = await User.findById(user._id).
 select('-password -refreshToken')
@@ -166,9 +161,9 @@ const logoutUser = asyncHandler(async(req, res) => {
      await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: {
-                refreshToken: undefined
-            }
+               $set: {
+                      refreshToken: undefined
+                     }
         },
         {
             new: true
@@ -186,11 +181,7 @@ const options = {
  .clearCookie("refreshToken", options)
  .json( new ApiResponse(200, {}, "user logged out"))
 
-
-
-
-
-
+ 
 })
 
 
